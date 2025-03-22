@@ -1,3 +1,4 @@
+using System.Text.Json;
 using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
 using LugaresParaIr.Models;
@@ -17,22 +18,41 @@ public class LugaresController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<LugarModel>>> GetLugares()
+    public async Task<IActionResult> GetLugares()
     {
-        return await _context.Lugares.ToListAsync();
+        var lugares = await _context.Lugares
+            .Include(lugar => lugar.Tags)
+            .Select(lugar => new
+            {
+                lugar.Id,
+                lugar.Name,
+                lugar.Address,
+                lugar.Number,
+                lugar.Cep,
+                lugar.CityZone,
+                lugar.HasVisited,
+                lugar.Avaliation,
+                lugar.Observation,
+                TagDetails = lugar.Tags.Select(t => new
+                {
+                    t.Id,
+                    t.Name
+                }).ToList()
+            }).ToListAsync();
+        return Ok(lugares);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetLugarById(int id)
     {
         var lugar = await _context.Lugares
-            .Where(l => l.Id == id)
-            .Include(l => l.Tags)
-            .Select(l => new
+            .Where(lugar => lugar.Id == id)
+            .Include(lugar => lugar.Tags) // Faz join com a tabela de Tags, traz suas tags associadas 
+            .Select(lugar => new
             {
-                l.Id,
-                l.Name,
-                TagDetails = l.Tags.Select(t => new
+                lugar.Id,
+                lugar.Name,
+                TagDetails = lugar.Tags.Select(t => new
                 {
                     t.Id,
                     t.Name
@@ -48,21 +68,29 @@ public class LugaresController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LugaresCreateDto dto)
     {
+        if (dto == null)
+        {
+            Console.WriteLine("Dto é nulooooooooooooo");
+        }
+        if (string.IsNullOrEmpty(dto.Address))
+        {
+            Console.WriteLine("Address é nulo ou vazio");
+        }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-
         var lugar = new LugarModel
         {
             Name = dto.Name,
-            Address = dto.Address,
-            Number = dto.Number,
-            Cep = dto.Cep,
+            Address = dto.Address ?? "",
+            Number = dto.Number ?? "",
+            Cep = dto.Cep ?? "",
             CityZone = dto.CityZone,
             HasVisited = dto.HasVisited,
-            Avaliation = dto.Avaliation,
-            Observation = dto.Observation,
+            Avaliation = dto.Avaliation ?? 0,
+            Observation = dto.Observation ?? "",
             Tags = await _context.Tags
                 .Where(t => dto.TagsIds.Contains(t.Id))
                 .ToListAsync()
