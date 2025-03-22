@@ -99,5 +99,82 @@ public class LugaresController : ControllerBase
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetLugarById), new { id = lugar.Id }, lugar);
     }
+
+    [HttpPatch]
+    public async Task<IActionResult> PatchLugar(int id, [FromBody] LugaresPatchDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var lugar = await _context.Lugares.Include(lugar => lugar.Tags).FirstOrDefaultAsync();
+        if (lugar == null)
+        {
+            return NotFound("Lugar não encontrado");
+        }
+        if (!string.IsNullOrEmpty(dto.Name))
+        {
+            lugar.Name = dto.Name;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Address))
+        {
+            lugar.Address = dto.Address;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Number))
+        {
+            lugar.Number = dto.Number;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Cep))
+        {
+            lugar.Cep = dto.Cep;
+        }
+
+        if (dto.CityZone.HasValue)
+        {
+            lugar.CityZone = dto.CityZone.Value;
+        }
+
+        if (dto.HasVisited.HasValue)
+        {
+            lugar.HasVisited = dto.HasVisited.Value;
+        }
+
+        if (dto.Avaliation.HasValue)
+        {
+            lugar.Avaliation = dto.Avaliation.Value;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Observation))
+        {
+            lugar.Observation = dto.Observation;
+        }
+
+        if (dto.TagsIds != null && dto.TagsIds.Any())
+        {
+            lugar.Tags = await _context.Tags.Where(tag => dto.TagsIds.Contains(tag.Id)).ToListAsync();
+        }
+
+        _context.Lugares.Update(lugar);
+        await _context.SaveChangesAsync();
+        return Ok();
+
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteLugar(int id)
+    {
+        var lugar = await _context.Lugares.FindAsync(id);
+        if (lugar == null)
+        {
+            return NotFound("Lugar não encontrada");
+        }
+
+        _context.Lugares.Remove(lugar);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
     
 }
