@@ -1,0 +1,68 @@
+# Ignore Visual Studio-specific and build files
+.vs/
+*.user
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.cache
+*.sln.docstates
+
+# Ignore build outputs and NuGet dependencies
+bin/
+obj/
+*.nuspec
+*.nupkg
+
+# Ignore user secrets
+secrets.json
+
+# Ignore logs and crash reports
+*.log
+
+# Ignore Rider IDE files
+.idea/
+
+# Ignore compiled code and build artifacts
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.ilk
+*.lib
+*.o
+*.so
+*.idb
+*.tlog
+
+# Ignore Entity Framework migrations and generated code
+Migrations/
+
+# Ignore configuration and environment files
+appsettings.Development.json
+appsettings.json
+.env
+
+# Ignore package dependencies and lock files
+node_modules/
+package-lock.json
+yarn.lock
+
+# Ignore JetBrains Rider project files
+.idea/
+*.sln.iml
+
+# Ignore coverage and test results
+coverage/
+*.coverage
+*.testresults/
+
+# Ignore generated assets
+wwwroot/lib/
+
+# Ignore temporary files and swap files
+*.tmp
+*.swp
+
+# Ignore Docker-related files
+docker-compose.override.yml
