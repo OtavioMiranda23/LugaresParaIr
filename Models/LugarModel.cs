@@ -14,6 +14,5 @@ public class LugarModel
     public bool HasVisited { get; set; }
     public int Avaliation { get; set; }
     public string Observation { get; set; }
-    [JsonIgnore]
     public ICollection<TagModel> Tags { get; set; }    
 }
