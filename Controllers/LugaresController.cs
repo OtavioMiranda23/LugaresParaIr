@@ -1,6 +1,7 @@
 using System.Text.Json;
 using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
+using LugaresParaIr.Enums;
 using LugaresParaIr.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,13 @@ public class LugaresController : ControllerBase
             {
                 lugar.Id,
                 lugar.Name,
+                lugar.Address,
+                lugar.Number,
+                lugar.Cep,
+                lugar.CityZone,
+                lugar.HasVisited,
+                lugar.Avaliation,
+                lugar.Observation,
                 TagDetails = lugar.Tags.Select(t => new
                 {
                     t.Id,
@@ -64,7 +72,58 @@ public class LugaresController : ControllerBase
         }
         return Ok(lugar);
     }
+
+    [HttpGet("zone/{zoneId}")]
+    public async Task<IActionResult> GetLugarByZone(int zoneId)
+    {
+        var lugar = await _context.Lugares
+            .Include(lugar => lugar.Tags)
+            .Where(lugar => lugar.CityZone == (CityZoneEnum)zoneId)
+            .Select(lugar => new
+            {
+                lugar.Id,
+                lugar.Name,
+                lugar.Address,
+                lugar.Number,
+                lugar.Cep,
+                lugar.CityZone,
+                lugar.HasVisited,
+                lugar.Avaliation,
+                lugar.Observation,
+                TagDetails = lugar.Tags.Select(t => new
+                {
+                    t.Id,
+                    t.Name
+                }).ToList()
+            }).ToListAsync();
+        return Ok(lugar);
+    }
     
+    [HttpGet("visited/{hasVisited}")]
+    public async Task<IActionResult> GetLugarByZone(Boolean hasVisited)
+    {
+        var lugar = await _context.Lugares
+            .Include(lugar => lugar.Tags)
+            .Where(lugar => lugar.HasVisited == hasVisited)
+            .Select(lugar => new
+            {
+                lugar.Id,
+                lugar.Name,
+                lugar.Address,
+                lugar.Number,
+                lugar.Cep,
+                lugar.CityZone,
+                lugar.HasVisited,
+                lugar.Avaliation,
+                lugar.Observation,
+                TagDetails = lugar.Tags.Select(t => new
+                {
+                    t.Id,
+                    t.Name
+                }).ToList()
+            }).ToListAsync();
+        return Ok(lugar);
+    }
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LugaresCreateDto dto)
     {
