@@ -127,10 +127,6 @@ public class LugaresController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LugaresCreateDto dto)
     {
-        if (dto == null)
-        {
-            Console.WriteLine("Dto é nulooooooooooooo");
-        }
         if (string.IsNullOrEmpty(dto.Address))
         {
             Console.WriteLine("Address é nulo ou vazio");

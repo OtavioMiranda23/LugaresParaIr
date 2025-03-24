@@ -1,4 +1,5 @@
 using LugaresParaIr.Data;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -28,6 +29,15 @@ builder.Services.AddSwaggerGen(c =>
         
     });
 });
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+});
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -46,10 +56,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseCors();
 app.MapControllers();
 
 app.Run();
