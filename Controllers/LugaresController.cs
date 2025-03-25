@@ -30,8 +30,11 @@ public class LugaresController : ControllerBase
                 lugar.Address,
                 lugar.Number,
                 lugar.Cep,
-                CityZone = lugar.CityZone.ToString(),
-                lugar.HasVisited,
+                CityZoneDetails = new
+                {
+                    CityZoneId = lugar.CityZone,
+                    CityZone = lugar.CityZone.ToString(),
+                },                lugar.HasVisited,
                 lugar.Avaliation,
                 lugar.Observation,
                 TagDetails = lugar.Tags.Select(t => new
@@ -56,8 +59,11 @@ public class LugaresController : ControllerBase
                 lugar.Address,
                 lugar.Number,
                 lugar.Cep,
-                CityZone = lugar.CityZone.ToString(),
-                lugar.HasVisited,
+                CityZoneDetails = new
+                {
+                    CityZoneId = lugar.CityZone,
+                    CityZone = lugar.CityZone.ToString(),
+                },                lugar.HasVisited,
                 lugar.Avaliation,
                 lugar.Observation,
                 TagDetails = lugar.Tags.Select(t => new
@@ -86,8 +92,11 @@ public class LugaresController : ControllerBase
                 lugar.Address,
                 lugar.Number,
                 lugar.Cep,
-                CityZone = lugar.CityZone.ToString(),
-                lugar.HasVisited,
+                CityZoneDetails = new
+                {
+                    CityZoneId = lugar.CityZone,
+                    CityZone = lugar.CityZone.ToString(),
+                },                lugar.HasVisited,
                 lugar.Avaliation,
                 lugar.Observation,
                 TagDetails = lugar.Tags.Select(t => new
@@ -100,7 +109,7 @@ public class LugaresController : ControllerBase
     }
     
     [HttpGet("visited/{hasVisited}")]
-    public async Task<IActionResult> GetLugarByZone(Boolean hasVisited)
+    public async Task<IActionResult> GetLugarByVisited(Boolean hasVisited)
     {
         var lugar = await _context.Lugares
             .Include(lugar => lugar.Tags)
@@ -112,7 +121,11 @@ public class LugaresController : ControllerBase
                 lugar.Address,
                 lugar.Number,
                 lugar.Cep,
-                CityZone = lugar.CityZone.ToString(),
+                CityZoneDetails = new
+                {
+                    CityZoneId = lugar.CityZone,
+                    CityZone = lugar.CityZone.ToString(),
+                },
                 lugar.HasVisited,
                 lugar.Avaliation,
                 lugar.Observation,
