@@ -168,14 +168,16 @@ public class LugaresController : ControllerBase
         return CreatedAtAction(nameof(GetLugarById), new { id = lugar.Id }, lugar);
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> PatchLugar(int id, [FromBody] LugaresPatchDto dto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutLugar(int id, [FromBody] LugaresPatchDto dto)
     {
+
+        Console.WriteLine($"id: {id}");
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var lugar = await _context.Lugares.Include(lugar => lugar.Tags).FirstOrDefaultAsync();
+        var lugar = await _context.Lugares.Include(lugar => lugar.Tags).FirstOrDefaultAsync(lugar => lugar.Id == id);
         if (lugar == null)
         {
             return NotFound("Lugar não encontrado");
@@ -220,7 +222,7 @@ public class LugaresController : ControllerBase
             lugar.Observation = dto.Observation;
         }
 
-        if (dto.TagsIds != null && dto.TagsIds.Any())
+        if (dto.TagsIds != null)
         {
             lugar.Tags = await _context.Tags.Where(tag => dto.TagsIds.Contains(tag.Id)).ToListAsync();
         }
