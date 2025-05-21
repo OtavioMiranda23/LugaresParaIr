@@ -24,4 +24,5 @@ public class LugarModel
     [StringLength(500, ErrorMessage = "A observação deve ter no máximo 500 caracteres.")]
     public string Observation { get; set; }
     public ICollection<TagModel>? Tags { get; set; }    
+    public ICollection<UserModel>? Users { get; set; }
 }
