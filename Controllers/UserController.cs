@@ -45,7 +45,6 @@ public class UserController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
-    //  TODO: COLOCAR SENHA EM UM .ENV E CRIAR ROLE PARA USERS 
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] Login loginData)
     {

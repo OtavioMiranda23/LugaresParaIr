@@ -15,5 +15,7 @@ public class UserModel
     [Required(ErrorMessage = "A senha é obrigatória.")]
     public string Password { get; set; }
     public ICollection<LugarModel> Lugares { get; set; }
-    
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
 }

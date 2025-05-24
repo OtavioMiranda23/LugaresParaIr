@@ -30,4 +30,5 @@ public class LugaresCreateDto
     public string? Observation { get; set; }
 
     public List<int>? TagsIds { get; set; }  
+    public Guid UserId { get; set; }
 }

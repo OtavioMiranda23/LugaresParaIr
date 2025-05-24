@@ -159,20 +159,22 @@ public class LugaresController : ControllerBase
             HasVisited = dto.HasVisited,
             Avaliation = dto.Avaliation ?? 0,
             Observation = dto.Observation ?? "",
+            Users = await _context.User
+                .Where(user => dto.UserId == user.Id)
+                .ToListAsync(),
             Tags = await _context.Tags
                 .Where(t => dto.TagsIds.Contains(t.Id))
                 .ToListAsync()
         };
         _context.Lugares.Add(lugar);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetLugarById), new { id = lugar.Id }, lugar);
+        return Ok(new { id = lugar.Id });
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> PutLugar(int id, [FromBody] LugaresPatchDto dto)
     {
 
-        Console.WriteLine($"id: {id}");
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -246,5 +248,39 @@ public class LugaresController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
-    
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetLugaresByUserId(Guid userId)
+    {
+        var user = await _context.User
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync();
+        if (user == null)
+            return BadRequest();
+        var lugar = await _context.Lugares
+            .Include(lugar => lugar.Tags)
+            .Where(lugar => lugar.Users.Any(u => u.Id == user.Id))
+            .Select(lugar => new
+            {
+                lugar.Id,
+                lugar.Name,
+                lugar.Address,
+                lugar.Number,
+                lugar.Cep,
+                CityZoneDetails = new
+                {
+                    CityZoneId = lugar.CityZone,
+                    CityZone = lugar.CityZone.ToString(),
+                },
+                lugar.HasVisited,
+                lugar.Avaliation,
+                lugar.Observation,
+                TagDetails = lugar.Tags.Select(t => new
+                {
+                    t.Id,
+                    t.Name
+                }).ToList()
+            }).ToListAsync();
+        return Ok(lugar);
+    }
 }

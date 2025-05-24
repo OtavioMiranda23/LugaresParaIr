@@ -25,4 +25,7 @@ public class LugarModel
     public string Observation { get; set; }
     public ICollection<TagModel>? Tags { get; set; }    
     public ICollection<UserModel>? Users { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    
 }
