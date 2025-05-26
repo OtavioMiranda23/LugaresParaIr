@@ -3,6 +3,8 @@ using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
 using LugaresParaIr.Enums;
 using LugaresParaIr.Models;
+using LugaresParaIr.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,33 +21,45 @@ public class LugaresController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetLugares()
+    [Authorize]
+    public async Task<IActionResult> GetLugares(int pageNumber = 1, int pageSize = 10)
     {
+        if (pageNumber < 1 || pageSize < 1)
+        {
+            return BadRequest($"{nameof(pageNumber)} and {nameof(pageSize)} size must be greater than 0.");
+        }
+
+        var totalRecords = await _context.Lugares.CountAsync();
         var lugares = await _context.Lugares
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Include(lugar => lugar.Tags)
-            .Select(lugar => new
+            .Select(lugar => new LugarDto
             {
-                lugar.Id,
-                lugar.Name,
-                lugar.Address,
-                lugar.Number,
-                lugar.Cep,
-                CityZoneDetails = new
+                Id = lugar.Id,
+                Name = lugar.Name,
+                Address = lugar.Address,
+                Number = lugar.Number,
+                Cep = lugar.Cep,
+                CityZoneDetails = new CityZoneDetailsDto
                 {
-                    CityZoneId = lugar.CityZone,
+                    CityZoneId = (int?)lugar.CityZone,
                     CityZone = lugar.CityZone.ToString(),
-                },                lugar.HasVisited,
-                lugar.Avaliation,
-                lugar.Observation,
-                TagDetails = lugar.Tags.Select(t => new
+                },                
+                HasVisited = lugar.HasVisited,
+                Avaliation = lugar.Avaliation,
+                Observation = lugar.Observation,
+                TagDetails = lugar.Tags.Select(t => new TagDetailsDto
                 {
-                    t.Id,
-                    t.Name
+                    Id = t.Id,
+                    Name = t.Name
                 }).ToList()
             }).ToListAsync();
+        var pagedResponse = new PagedResponseOffset<LugarDto>(lugares, pageNumber, pageSize, totalRecords);
         return Ok(lugares);
     }
-
+    
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetLugarById(int id)
     {
@@ -78,7 +92,8 @@ public class LugaresController : ControllerBase
         }
         return Ok(lugar);
     }
-
+    
+    [Authorize]
     [HttpGet("zone/{zoneId}")]
     public async Task<IActionResult> GetLugarByZone(int zoneId)
     {
@@ -107,7 +122,7 @@ public class LugaresController : ControllerBase
             }).ToListAsync();
         return Ok(lugar);
     }
-    
+    [Authorize]
     [HttpGet("visited/{hasVisited}")]
     public async Task<IActionResult> GetLugarByVisited(Boolean hasVisited)
     {
@@ -137,6 +152,7 @@ public class LugaresController : ControllerBase
             }).ToListAsync();
         return Ok(lugar);
     }
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LugaresCreateDto dto)
     {
@@ -170,7 +186,7 @@ public class LugaresController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { id = lugar.Id });
     }
-
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> PutLugar(int id, [FromBody] LugaresPatchDto dto)
     {
@@ -234,7 +250,7 @@ public class LugaresController : ControllerBase
         return Ok();
 
     }
-
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLugar(int id)
     {

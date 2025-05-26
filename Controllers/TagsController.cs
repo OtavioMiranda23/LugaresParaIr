@@ -1,6 +1,7 @@
 using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
 using LugaresParaIr.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -16,13 +17,13 @@ public class TagsController : ControllerBase
     {
         _context = context;
     }
-
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TagModel>>> GetTasks()
     {
         return await _context.Tags.ToListAsync();
     }
-
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetTagById(int id)
     {
@@ -33,7 +34,7 @@ public class TagsController : ControllerBase
         }
         return Ok(tag);
     }
-    
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] TagCreateDto tagDto)
     {
@@ -47,7 +48,7 @@ public class TagsController : ControllerBase
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetTagById), new { id = tag.Id }, tag);
     }
-
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTag(int id, [FromBody] TagCreateDto tagDto)
     {
@@ -72,7 +73,7 @@ public class TagsController : ControllerBase
             return StatusCode(500, "Erro ao atualizar a tag");
         }
     }
-
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTag(int id)
     {
