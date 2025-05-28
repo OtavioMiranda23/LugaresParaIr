@@ -21,19 +21,71 @@ public class LugaresController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
-    public async Task<IActionResult> GetLugares(int pageNumber = 1, int pageSize = 10)
+    // [Authorize]
+    public async Task<IActionResult> GetLugares(
+        int pageNumber = 1, 
+        int pageSize = 10,
+        Guid? userId = null,
+        string? name = null,
+        string? addresss = null,
+        string? cep = null,
+        int? cityZone = null,
+        bool? hasVisited = null,
+        int? avaliation = null,
+        int? tagId = null,
+        DateTime? createdAt = null
+        )
     {
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest($"{nameof(pageNumber)} and {nameof(pageSize)} size must be greater than 0.");
         }
 
-        var totalRecords = await _context.Lugares.CountAsync();
-        var lugares = await _context.Lugares
+        var query = _context.Lugares
+            .AsQueryable();
+
+        if (name != null)
+        {
+            query = query.Where(l => l.Name == name);
+        }
+
+        if (addresss != null)
+        {
+            query = query.Where(l => l.Address != null && l.Address.Contains(addresss));
+        }
+
+        if (cep != null)
+        {
+            query = query.Where(l => l.Cep != null && l.Cep == cep);
+        }
+        
+        if (cityZone != null)
+        {
+            query = query.Where(l => l.CityZone != null && (int)l.CityZone.Value == cityZone);
+        }
+        if (hasVisited != null)
+        {
+            query = query.Where(l => l.HasVisited != null && l.HasVisited == hasVisited);
+        }
+        if (avaliation != null)
+        {
+            query = query.Where(l => l.Avaliation != null && l.Avaliation == avaliation);
+        }
+        if (tagId != null)
+        {
+            query = query.Where(l => l.Tags.Any(t => t.Id == tagId));
+        }
+        if (userId.HasValue)
+        {
+            query = query.Where(l => l.Users.Any(u => u.Id == userId.Value));
+        }
+
+        query = query.Include(l => l.Tags);
+
+        var totalRecords = await query.CountAsync();
+        var lugares = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Include(lugar => lugar.Tags)
             .Select(lugar => new LugarDto
             {
                 Id = lugar.Id,
@@ -56,102 +108,9 @@ public class LugaresController : ControllerBase
                 }).ToList()
             }).ToListAsync();
         var pagedResponse = new PagedResponseOffset<LugarDto>(lugares, pageNumber, pageSize, totalRecords);
-        return Ok(lugares);
+        return Ok(pagedResponse);
     }
     
-    [Authorize]
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetLugarById(int id)
-    {
-        var lugar = await _context.Lugares
-            .Where(lugar => lugar.Id == id)
-            .Include(lugar => lugar.Tags) // Faz join com a tabela de Tags, traz suas tags associadas 
-            .Select(lugar => new
-            {
-                lugar.Id,
-                lugar.Name,
-                lugar.Address,
-                lugar.Number,
-                lugar.Cep,
-                CityZoneDetails = new
-                {
-                    CityZoneId = lugar.CityZone,
-                    CityZone = lugar.CityZone.ToString(),
-                },                lugar.HasVisited,
-                lugar.Avaliation,
-                lugar.Observation,
-                TagDetails = lugar.Tags.Select(t => new
-                {
-                    t.Id,
-                    t.Name
-                }).ToList()
-            }).FirstOrDefaultAsync();
-        if (lugar == null)
-        {
-            return NotFound();
-        }
-        return Ok(lugar);
-    }
-    
-    [Authorize]
-    [HttpGet("zone/{zoneId}")]
-    public async Task<IActionResult> GetLugarByZone(int zoneId)
-    {
-        var lugar = await _context.Lugares
-            .Include(lugar => lugar.Tags)
-            .Where(lugar => lugar.CityZone == (CityZoneEnum)zoneId)
-            .Select(lugar => new
-            {
-                lugar.Id,
-                lugar.Name,
-                lugar.Address,
-                lugar.Number,
-                lugar.Cep,
-                CityZoneDetails = new
-                {
-                    CityZoneId = lugar.CityZone,
-                    CityZone = lugar.CityZone.ToString(),
-                },                lugar.HasVisited,
-                lugar.Avaliation,
-                lugar.Observation,
-                TagDetails = lugar.Tags.Select(t => new
-                {
-                    t.Id,
-                    t.Name
-                }).ToList()
-            }).ToListAsync();
-        return Ok(lugar);
-    }
-    [Authorize]
-    [HttpGet("visited/{hasVisited}")]
-    public async Task<IActionResult> GetLugarByVisited(Boolean hasVisited)
-    {
-        var lugar = await _context.Lugares
-            .Include(lugar => lugar.Tags)
-            .Where(lugar => lugar.HasVisited == hasVisited)
-            .Select(lugar => new
-            {
-                lugar.Id,
-                lugar.Name,
-                lugar.Address,
-                lugar.Number,
-                lugar.Cep,
-                CityZoneDetails = new
-                {
-                    CityZoneId = lugar.CityZone,
-                    CityZone = lugar.CityZone.ToString(),
-                },
-                lugar.HasVisited,
-                lugar.Avaliation,
-                lugar.Observation,
-                TagDetails = lugar.Tags.Select(t => new
-                {
-                    t.Id,
-                    t.Name
-                }).ToList()
-            }).ToListAsync();
-        return Ok(lugar);
-    }
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LugaresCreateDto dto)
@@ -263,40 +222,5 @@ public class LugaresController : ControllerBase
         _context.Lugares.Remove(lugar);
         await _context.SaveChangesAsync();
         return NoContent();
-    }
-
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetLugaresByUserId(Guid userId)
-    {
-        var user = await _context.User
-            .Where(u => u.Id == userId)
-            .FirstOrDefaultAsync();
-        if (user == null)
-            return BadRequest();
-        var lugar = await _context.Lugares
-            .Include(lugar => lugar.Tags)
-            .Where(lugar => lugar.Users.Any(u => u.Id == user.Id))
-            .Select(lugar => new
-            {
-                lugar.Id,
-                lugar.Name,
-                lugar.Address,
-                lugar.Number,
-                lugar.Cep,
-                CityZoneDetails = new
-                {
-                    CityZoneId = lugar.CityZone,
-                    CityZone = lugar.CityZone.ToString(),
-                },
-                lugar.HasVisited,
-                lugar.Avaliation,
-                lugar.Observation,
-                TagDetails = lugar.Tags.Select(t => new
-                {
-                    t.Id,
-                    t.Name
-                }).ToList()
-            }).ToListAsync();
-        return Ok(lugar);
     }
 }
