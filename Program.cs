@@ -23,9 +23,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 var secret = builder.Configuration["User:Secret"];
-Console.WriteLine($":::::::::::::::::::::{secret}");
 var key = Encoding.UTF8.GetBytes(secret);
-
+var mailJetApiKey = builder.Configuration["User:apiKey"];
+var mailJetSecretKey = builder.Configuration["User:secretKey"];
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
