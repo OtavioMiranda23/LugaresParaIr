@@ -1,8 +1,14 @@
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
+using LugaresParaIr.Exceptions;
+using LugaresParaIr.Interface;
 using LugaresParaIr.Models;
 using LugaresParaIr.Services;
 using LugaresParaIr.Utils;
+using LugaresParaIr.ValueObjects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +21,10 @@ public class UserController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly CreateJwt _jwt;
-    public UserController(AppDbContext context, CreateJwt jwt)
+    private readonly INotificationService _notificationService;
+    public UserController(AppDbContext context, CreateJwt jwt, INotificationService notificationService)
     {
+        _notificationService = notificationService;
         _context = context;
         _jwt = jwt;
     }
@@ -69,5 +77,32 @@ public class UserController : ControllerBase
             userId = user.Id,
             token = tokenJwt
         });
+        
+    }
+
+    [HttpPut("account/password")]
+    public async Task<IActionResult> ResetPassword([FromBody] string emailAddress)
+    {
+        try
+        {
+            var email = new Email(emailAddress);
+            var user = await _context.User.Where(u => u.Email == email.Address).FirstOrDefaultAsync();
+            if (user == null)
+            {
+                return BadRequest("Usuário não cadastrado");
+            }
+
+            await _notificationService.SendResetPassword(email.Address);
+            return Ok();
+        }
+        catch (TemplateNotFoundException e)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, e.Message);
+        }
+        catch (InvalidEmailException e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
 }

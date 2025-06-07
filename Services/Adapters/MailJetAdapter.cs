@@ -1,3 +1,4 @@
+using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
 using LugaresParaIr.Interface;
 using Mailjet.Client;
@@ -9,16 +10,12 @@ namespace LugaresParaIr.Services.Adapters;
 public class MailJetAdapter : INotificationChannel
 {
     private MailjetClient Client;
-    private string ApiKey;
-    private string ApiSecret;
-    public MailJetAdapter(IConfiguration configuration)
+    public MailJetAdapter(string apiKey, string apiSecret)
     {
-        ApiKey = configuration["User:apiKey"];
-        ApiSecret = configuration["User:secretKey"];
-        Client = new MailjetClient(ApiKey,ApiSecret);
+        Client = new MailjetClient(apiKey, apiSecret);
     }
     
-    public async Task SendEmail(NotificationMessageModel messageModel)
+    public async Task SendAsyncEmail(NotificationMessageModel messageModel)
     {
         try
         {
@@ -39,13 +36,12 @@ public class MailJetAdapter : INotificationChannel
             }
             else
             {
-                Console.WriteLine($"Response do email vazio ou inválido! {messageModel.To}");
+                throw new Exception("$Response do email vazio ou inválido! {messageModel.To}");
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Erro ao enviar email: {e}");
-            throw;
+            throw new Exception($"Erro ao enviar email: {e}");
         }
     }
 }

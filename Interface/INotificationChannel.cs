@@ -4,5 +4,5 @@ namespace LugaresParaIr.Interface;
 
 public interface INotificationChannel
 {
-    Task SendEmail(NotificationMessageModel messageModel);
+    Task SendAsyncEmail(NotificationMessageModel messageModel);
 }

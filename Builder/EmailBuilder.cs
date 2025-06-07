@@ -31,10 +31,15 @@ public class EmailBuilder
     }
     public EmailBuilder SetBody(string content)
     {
-        _email.Subject = content;
+        _email.Body = content;
         return this;
     }
 
+    public EmailBuilder SetLink(string link)
+    {
+        _email.Body = _email.Body.Replace("{link}", link);
+        return this;
+    }
     public NotificationMessageModel Build()
     {
         return _email;

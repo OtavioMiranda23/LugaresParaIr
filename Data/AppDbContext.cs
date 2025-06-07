@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<LugarModel> Lugares { get; set; }
     public DbSet<TagModel> Tags { get; set; }
     public DbSet<UserModel> User { get; set; }
+    public DbSet<TemplateEmailMessagesModel> TemplateEmail { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<LugarModel>()

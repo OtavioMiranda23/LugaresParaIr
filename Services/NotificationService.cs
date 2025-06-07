@@ -1,30 +1,40 @@
 using LugaresParaIr.Builder;
+using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
+using LugaresParaIr.Exceptions;
 using LugaresParaIr.Interface;
+using LugaresParaIr.Models;
 
 namespace LugaresParaIr.Services;
 
-public class NotificationService
+public class NotificationService : INotificationService
 {
-    private INotificationChannel Mailer;
-    public NotificationService(INotificationChannel mailer)
+    private INotificationChannel _mailer;
+    private readonly AppDbContext _context;
+
+    public NotificationService(INotificationChannel mailer, AppDbContext context)
     {
-        Mailer = mailer;
+        _context = context;
+        _mailer = mailer;
     }
 
-    public void SendResetPassword()
+    public async Task SendResetPassword(string emailTo)
     {
         try
         {
-            //Acessar o body e subject no bd;
+            var template = await _context.TemplateEmail.FindAsync(3);
+            if (template == null)
+            {
+                throw new TemplateNotFoundException("Template not found");
+            }
             var emailMessage = new EmailBuilder()
                 .SetFrom("lugaresparairsender@gmail.com")
-                .SetTo("lugaresparairsender@gmail.com")
-                .SetSubject("Teste")
-                .SetBody("<h1>Testandooooo</h1>")
+                .SetTo(emailTo)
+                .SetSubject(template.Subject)
+                .SetBody(template.MessageTemplate)
+                .SetLink("https://www.google.com/")
                 .Build();
-            Mailer.SendEmail(emailMessage);
-
+           await _mailer.SendAsyncEmail(emailMessage);
         }
         catch (Exception e)
         {

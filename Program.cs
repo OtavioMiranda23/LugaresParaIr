@@ -1,5 +1,6 @@
 using System.Text;
 using LugaresParaIr.Data;
+using LugaresParaIr.Interface;
 using LugaresParaIr.Services;
 using LugaresParaIr.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,6 +19,7 @@ builder.Services.AddControllers()
     });
 builder.Configuration.AddUserSecrets<Program>();
 builder.Services.AddTransient<CreateJwt>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
@@ -119,7 +121,24 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
-
+app.UseExceptionHandler(errorApi =>
+{
+    errorApi.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        if (error != null)
+        {
+            var exception = error.Error;
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                message = "Erro interno no servidor.",
+                detail = app.Environment.IsDevelopment() ? exception.Message : null
+            }));
+        }
+    });
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors();

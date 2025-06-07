@@ -16,7 +16,7 @@ public class TemplateEmailMessageModelTest
         {
             To = "email_valido@gmail.com",
             Subject = "Assunto",
-            MessageTemplate = 1,
+            MessageTemplate = "<p>Clique no link a seguir para recuperar a senha: <br/> <a href='{link}'>Clique aqui</p>",
             Link = "https://exemplo.com"
         };
 
@@ -34,7 +34,7 @@ public class TemplateEmailMessageModelTest
         {
             To = "email_validogmail.com",
             Subject = "Assunto",
-            MessageTemplate = 1,
+            MessageTemplate = "<p>Clique no link a seguir para recuperar a senha: <br/> <a href='{link}'>Clique aqui</p>",
             Link = "https://exemplo.com"
         };
 
@@ -53,8 +53,6 @@ public class TemplateEmailMessageModelTest
         
         var apiKey = configuration["apiKey"];
         var apiSecret = configuration["secretKey"];
-        Console.WriteLine(apiKey);
-        Console.WriteLine(apiSecret);
         MailjetClient client = new MailjetClient(
             apiKey,
             apiSecret);

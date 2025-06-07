@@ -21,7 +21,7 @@ public class LugaresController : ControllerBase
     }
 
     [HttpGet]
-    // [Authorize]
+    [Authorize]
     public async Task<IActionResult> GetLugares(
         int pageNumber = 1, 
         int pageSize = 10,
