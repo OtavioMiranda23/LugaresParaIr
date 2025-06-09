@@ -2,5 +2,5 @@ namespace LugaresParaIr.Interface;
 
 public interface INotificationService
 {
-    Task SendResetPassword(string emailTo);
+    Task SendResetPassword(string emailTo, string token);
 }

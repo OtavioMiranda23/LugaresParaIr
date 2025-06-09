@@ -71,7 +71,7 @@ public class UserController : ControllerBase
         {
             return Unauthorized();
         }
-        string tokenJwt = _jwt.GenerateToken(user);
+        string tokenJwt = _jwt.GenerateToken(user, 120);
         return Ok(new
         {
             userId = user.Id,
@@ -92,7 +92,8 @@ public class UserController : ControllerBase
                 return BadRequest("Usuário não cadastrado");
             }
 
-            await _notificationService.SendResetPassword(email.Address);
+            string token = _jwt.GenerateToken(user, 60);
+            await _notificationService.SendResetPassword(email.Address, token);
             return Ok();
         }
         catch (TemplateNotFoundException e)

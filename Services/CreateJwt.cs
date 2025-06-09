@@ -14,18 +14,18 @@ public class CreateJwt
     {
         _secret = configuration["User:Secret"];
     }
-    public string GenerateToken(UserModel user)
+    public string GenerateToken(UserModel user, int minutesToExpire)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        Console.WriteLine($"==========> {_secret}");
         var key = Encoding.ASCII.GetBytes(_secret);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new Claim[]
             {
                 new Claim(ClaimTypes.Name, user.Name.ToString()),
+                new Claim(ClaimTypes.Email, user.Email.ToString())
             }),
-            Expires = DateTime.UtcNow.AddHours(2),
+            Expires = DateTime.UtcNow.AddMinutes(minutesToExpire),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

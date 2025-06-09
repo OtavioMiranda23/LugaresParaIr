@@ -11,28 +11,41 @@ public class NotificationService : INotificationService
 {
     private INotificationChannel _mailer;
     private readonly AppDbContext _context;
-
-    public NotificationService(INotificationChannel mailer, AppDbContext context)
+    private readonly IConfiguration _config;
+    
+    public NotificationService(INotificationChannel mailer, AppDbContext context, IConfiguration config)
     {
         _context = context;
         _mailer = mailer;
+        _config = config;
     }
 
-    public async Task SendResetPassword(string emailTo)
+    public async Task SendResetPassword(string emailTo, string token)
     {
+        const int templateEmailNumber = (int) TemplateEmailEnum.ResetPassword;
         try
         {
-            var template = await _context.TemplateEmail.FindAsync(3);
+            
+            var template = await _context.TemplateEmail.FindAsync(templateEmailNumber);
             if (template == null)
             {
                 throw new TemplateNotFoundException("Template not found");
             }
+            //gerar token jwt, concatená-lo com o endereço
+            var uri = _config["App:Frontend"];
+            if (uri == null)
+            {
+                throw new Exception("Uri não encontrada");
+            }
+            
+            var link = $"{uri}/passwordLost?token={token}"; 
             var emailMessage = new EmailBuilder()
+                //TODO: Colocar em uma variavel de ambiente
                 .SetFrom("lugaresparairsender@gmail.com")
                 .SetTo(emailTo)
                 .SetSubject(template.Subject)
                 .SetBody(template.MessageTemplate)
-                .SetLink("https://www.google.com/")
+                .SetLink(link)
                 .Build();
            await _mailer.SendAsyncEmail(emailMessage);
         }
@@ -42,4 +55,9 @@ public class NotificationService : INotificationService
             throw;
         }
     }
+}
+
+enum TemplateEmailEnum
+{
+    ResetPassword = 3
 }

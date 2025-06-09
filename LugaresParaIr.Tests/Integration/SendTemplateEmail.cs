@@ -22,7 +22,7 @@ public class SendTemplateEmail
         return context;
     }
     [Fact]
-    public void SuccessEmail()
+    public async void SuccessEmail()
     {
         var builder = new ConfigurationBuilder().AddUserSecrets("9c9d4d88-25d0-4ad7-bdd6-7d0c15a8564c");
         var configuration = builder.Build();
@@ -37,13 +37,15 @@ public class SendTemplateEmail
         //     { "apiKey", apiKey },
         //     { "apiSecret", apiSecret }
         // };
-        // IConfiguration configurationMail =  new ConfigurationBuilder()
-        //     .AddInMemoryCollection(configApi)
-        //     .Build();
+        IConfiguration configurationDev =  new ConfigurationBuilder()
+            .SetBasePath(System.AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.Development.json")
+            .Build();
         var mailer = new MailJetAdapter(apiKey, apiSecret);
-        var notificationService = new NotificationService(mailer, CreateDbContext());
+        var notificationService = new NotificationService(mailer, CreateDbContext(), configurationDev);
         const string recipient = "lugaresparairsender@gmail.com";
-        var exception = Record.ExceptionAsync(() =>  notificationService.SendResetPassword(recipient));
+        //Criar jwt
+        var exception = await Record.ExceptionAsync(() =>  notificationService.SendResetPassword(recipient, ));
         Assert.Null(exception);
     }
     
