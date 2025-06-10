@@ -38,6 +38,7 @@ public class EmailBuilder
     public EmailBuilder SetLink(string link)
     {
         _email.Body = _email.Body.Replace("{link}", link);
+        _email.Link = link;
         return this;
     }
     public NotificationMessageModel Build()

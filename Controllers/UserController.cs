@@ -21,8 +21,8 @@ public class UserController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly CreateJwt _jwt;
-    private readonly INotificationService _notificationService;
-    public UserController(AppDbContext context, CreateJwt jwt, INotificationService notificationService)
+    private readonly INotificationService<NotificationMessageModel> _notificationService;
+    public UserController(AppDbContext context, CreateJwt jwt, INotificationService<NotificationMessageModel> notificationService)
     {
         _notificationService = notificationService;
         _context = context;

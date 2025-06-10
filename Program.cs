@@ -1,7 +1,10 @@
 using System.Text;
 using LugaresParaIr.Data;
+using LugaresParaIr.Dtos;
 using LugaresParaIr.Interface;
+using LugaresParaIr.Models;
 using LugaresParaIr.Services;
+using LugaresParaIr.Services.Adapters;
 using LugaresParaIr.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -19,15 +22,16 @@ builder.Services.AddControllers()
     });
 builder.Configuration.AddUserSecrets<Program>();
 builder.Services.AddTransient<CreateJwt>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationService<NotificationMessageModel>, NotificationService>();
+builder.Services.Configure<MailJetSettings>(
+    builder.Configuration.GetSection("MailJetSettings"));
+builder.Services.AddScoped<INotificationChannel, MailJetAdapter>();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
 var secret = builder.Configuration["User:Secret"];
 var key = Encoding.UTF8.GetBytes(secret);
-var mailJetApiKey = builder.Configuration["User:apiKey"];
-var mailJetSecretKey = builder.Configuration["User:secretKey"];
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

@@ -7,7 +7,7 @@ using LugaresParaIr.Models;
 
 namespace LugaresParaIr.Services;
 
-public class NotificationService : INotificationService
+public class NotificationService : INotificationService<NotificationMessageModel>
 {
     private INotificationChannel _mailer;
     private readonly AppDbContext _context;
@@ -20,7 +20,7 @@ public class NotificationService : INotificationService
         _config = config;
     }
 
-    public async Task SendResetPassword(string emailTo, string token)
+    public async Task<NotificationMessageModel> SendResetPassword(string emailTo, string token)
     {
         const int templateEmailNumber = (int) TemplateEmailEnum.ResetPassword;
         try
@@ -32,14 +32,14 @@ public class NotificationService : INotificationService
                 throw new TemplateNotFoundException("Template not found");
             }
             //gerar token jwt, concatená-lo com o endereço
-            var uri = _config["App:Frontend"];
+            var uri = _config["Logging:App:Frontend"];
             if (uri == null)
             {
                 throw new Exception("Uri não encontrada");
             }
             
             var link = $"{uri}/passwordLost?token={token}"; 
-            var emailMessage = new EmailBuilder()
+            NotificationMessageModel emailMessage = new EmailBuilder()
                 //TODO: Colocar em uma variavel de ambiente
                 .SetFrom("lugaresparairsender@gmail.com")
                 .SetTo(emailTo)
@@ -48,6 +48,7 @@ public class NotificationService : INotificationService
                 .SetLink(link)
                 .Build();
            await _mailer.SendAsyncEmail(emailMessage);
+           return emailMessage;
         }
         catch (Exception e)
         {

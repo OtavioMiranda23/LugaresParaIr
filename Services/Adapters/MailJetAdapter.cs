@@ -4,15 +4,16 @@ using LugaresParaIr.Interface;
 using Mailjet.Client;
 using Mailjet.Client.Resources.SMS;
 using Mailjet.Client.TransactionalEmails;
+using Microsoft.Extensions.Options;
 
 namespace LugaresParaIr.Services.Adapters;
 
 public class MailJetAdapter : INotificationChannel
 {
     private MailjetClient Client;
-    public MailJetAdapter(string apiKey, string apiSecret)
+    public MailJetAdapter(IOptions<MailJetSettings> settings)
     {
-        Client = new MailjetClient(apiKey, apiSecret);
+        Client = new MailjetClient(settings.Value.ApiKey, settings.Value.SecretKey);
     }
     
     public async Task SendAsyncEmail(NotificationMessageModel messageModel)
