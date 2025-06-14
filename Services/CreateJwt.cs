@@ -32,4 +32,18 @@ public class CreateJwt
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    public ClaimsPrincipal ValidateJwt(string jwtToken)
+    {
+        var parameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret)),
+            ClockSkew = TimeSpan.Zero
+        };
+        var tokenHandler = new JwtSecurityTokenHandler();
+        return tokenHandler.ValidateToken(jwtToken, parameters, out _);
+    }
 }

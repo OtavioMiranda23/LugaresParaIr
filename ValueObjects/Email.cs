@@ -15,7 +15,7 @@ public class Email
 
         Address = address.ToLower().Trim();
         const string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-        if (Regex.IsMatch(Address, pattern))
+        if (!Regex.IsMatch(Address, pattern))
         {
             throw new InvalidEmailException();
         }

@@ -1,5 +1,7 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.RegularExpressions;
 using LugaresParaIr.Data;
 using LugaresParaIr.Dtos;
@@ -13,6 +15,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Xunit;
 
 namespace LugaresParaIr.Controllers;
 
@@ -94,7 +98,7 @@ public class UserController : ControllerBase
 
             string token = _jwt.GenerateToken(user, TimeSpan.FromMinutes(60));
             await _notificationService.SendResetPassword(email.Address, token);
-            return Ok();
+            return Ok(token);
         }
         catch (TemplateNotFoundException e)
         {
@@ -104,14 +108,40 @@ public class UserController : ControllerBase
         {
             return BadRequest(e.Message);
         }
-
-        [HttpPut]
-        public async Task<IActionResult> ChangePassword([FromBody] string jwt,  string newPassword)
+    }
+    [HttpPut("account/password/recovery")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dataChange)
+    {
+        if (!ModelState.IsValid)
         {
-            
-            dataChange.Jwt;
-            return Ok();
+            return BadRequest(ModelState);
         }
-        
+        try
+        {
+            var claimsPrincipal = _jwt.ValidateJwt(dataChange.Jwt);
+            var claim = claimsPrincipal.Claims.Where(claim => claim.Type.Contains("emailaddress")).FirstOrDefault();
+            if (claim == null)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, "Token inválido");
+            }
+            var email = claim.Value;
+            var user = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            //estando o jwt válido, preciso pegar o email que está no jwt buscar no banco, alterar senha hash
+            var hashClass = new PasswordHasher<UserModel>();
+            string hashValue = hashClass.HashPassword(user, dataChange.NewPassword);
+            user.Password = hashValue;
+            //TODO: Verificar o salt mais hash
+            _context.Update(user);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode((int)HttpStatusCode.InternalServerError, "Token inválido");
+        }
+        return Ok();
     }
 }
