@@ -14,7 +14,7 @@ public class CreateJwt
     {
         _secret = configuration["User:Secret"];
     }
-    public string GenerateToken(UserModel user, int minutesToExpire)
+    public string GenerateToken(UserModel user, TimeSpan expiresIn)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secret);
@@ -25,7 +25,8 @@ public class CreateJwt
                 new Claim(ClaimTypes.Name, user.Name.ToString()),
                 new Claim(ClaimTypes.Email, user.Email.ToString())
             }),
-            Expires = DateTime.UtcNow.AddMinutes(minutesToExpire),
+            Expires = DateTime.UtcNow.Add(expiresIn),
+            NotBefore = DateTime.Now,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

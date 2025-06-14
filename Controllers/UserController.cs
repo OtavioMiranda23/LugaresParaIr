@@ -71,7 +71,7 @@ public class UserController : ControllerBase
         {
             return Unauthorized();
         }
-        string tokenJwt = _jwt.GenerateToken(user, 120);
+        string tokenJwt = _jwt.GenerateToken(user, TimeSpan.FromMinutes(120));
         return Ok(new
         {
             userId = user.Id,
@@ -92,7 +92,7 @@ public class UserController : ControllerBase
                 return BadRequest("Usuário não cadastrado");
             }
 
-            string token = _jwt.GenerateToken(user, 60);
+            string token = _jwt.GenerateToken(user, TimeSpan.FromMinutes(60));
             await _notificationService.SendResetPassword(email.Address, token);
             return Ok();
         }
@@ -103,6 +103,14 @@ public class UserController : ControllerBase
         catch (InvalidEmailException e)
         {
             return BadRequest(e.Message);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> ChangePassword([FromBody] string jwt,  string newPassword)
+        {
+            
+            dataChange.Jwt;
+            return Ok();
         }
         
     }
