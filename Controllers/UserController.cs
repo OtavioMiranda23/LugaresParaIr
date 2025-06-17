@@ -14,6 +14,7 @@ using LugaresParaIr.ValueObjects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
@@ -57,7 +58,7 @@ public class UserController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
-    [HttpPost("Login")]
+    [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] Login loginData)
     {
         if (!ModelState.IsValid)
@@ -76,20 +77,21 @@ public class UserController : ControllerBase
             return Unauthorized();
         }
         string tokenJwt = _jwt.GenerateToken(user, TimeSpan.FromMinutes(120));
-        return Ok(new
+        var loginDto = new LoginReturnDto
         {
-            userId = user.Id,
-            token = tokenJwt
-        });
-        
+            UserId = user.Id,
+            Token = tokenJwt
+        };
+        return Ok(loginDto);
+
     }
 
     [HttpPut("account/password")]
-    public async Task<IActionResult> ResetPassword([FromBody] string emailAddress)
+    public async Task<IActionResult> ResetPassword([FromBody] EmailAddress emailAddress)
     {
         try
         {
-            var email = new Email(emailAddress);
+            var email = new Email(emailAddress.Address);
             var user = await _context.User.Where(u => u.Email == email.Address).FirstOrDefaultAsync();
             if (user == null)
             {
@@ -116,6 +118,7 @@ public class UserController : ControllerBase
         {
             return BadRequest(ModelState);
         }
+
         try
         {
             var claimsPrincipal = _jwt.ValidateJwt(dataChange.Jwt);
@@ -134,14 +137,15 @@ public class UserController : ControllerBase
             var hashClass = new PasswordHasher<UserModel>();
             string hashValue = hashClass.HashPassword(user, dataChange.NewPassword);
             user.Password = hashValue;
-            //TODO: Verificar o salt mais hash
             _context.Update(user);
+            await _context.SaveChangesAsync();
+            return Ok(user.Id);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
             return StatusCode((int)HttpStatusCode.InternalServerError, "Token inválido");
         }
-        return Ok();
+
     }
 }
