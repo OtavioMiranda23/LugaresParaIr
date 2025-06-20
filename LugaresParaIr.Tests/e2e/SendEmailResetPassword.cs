@@ -36,7 +36,7 @@ public class SendResetPassword
             JsonSerializer.Serialize(new
             {
                 Jwt = token,
-                NewPassword = "Abc12345678"
+                NewPassword = "Abc123456##"
             }),
             Encoding.UTF8,
             "application/json");
@@ -49,7 +49,7 @@ public class SendResetPassword
             JsonSerializer.Serialize(new
             {
                 Email = emailAddress,
-                    Password = "Abc12345678"
+                Password = "Abc123456##"
             }),
             Encoding.UTF8,
             "application/json");
@@ -57,8 +57,11 @@ public class SendResetPassword
         response = await httpClient.PostAsync(uri, jsonContentLogin);
         string loginRaw = await response.Content.ReadAsStringAsync();
         Assert.DoesNotContain("inválida", loginRaw);
-        _output.WriteLine($"Login: => {loginRaw}");
-        var loginJson = JsonSerializer.Deserialize<LoginReturnDto>(loginRaw);
+        var optionJsonSerializer = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        var loginJson = JsonSerializer.Deserialize<LoginReturnDto>(loginRaw, optionJsonSerializer);
         var userGuid = Guid.Parse(userId);
         Assert.Equal(loginJson.UserId, userGuid);
     }

@@ -122,7 +122,7 @@ public class UserController : ControllerBase
         try
         {
             var claimsPrincipal = _jwt.ValidateJwt(dataChange.Jwt);
-            var claim = claimsPrincipal.Claims.Where(claim => claim.Type.Contains("emailaddress")).FirstOrDefault();
+            var claim = claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type.Contains("emailaddress"));
             if (claim == null)
             {
                 return StatusCode((int)HttpStatusCode.InternalServerError, "Token inválido");
@@ -139,7 +139,7 @@ public class UserController : ControllerBase
             user.Password = hashValue;
             _context.Update(user);
             await _context.SaveChangesAsync();
-            return Ok(user.Id);
+            return Ok(user.Id.ToString());
         }
         catch (Exception e)
         {
